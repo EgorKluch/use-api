@@ -1,9 +1,10 @@
 {
   "name": "egorkluch-use-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "useApi hook for manage state of any api",
   "homepage": "https://github.com/EgorKluch/use-api",
   "repository":  "https://github.com/EgorKluch/use-api.git",
+  "main": "useApi.ts",
   "keywords": [
     "use-api",
     "react",

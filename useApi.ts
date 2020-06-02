@@ -31,10 +31,10 @@ export type UseApi = <TResponse, TInitialValue, TRequest = void>(
     initialValue: TInitialValue,
 ) => [TResponse | TInitialValue, (payload: TRequest) => void, ApiState];
 
-const useApi: UseApi = <TResponse, TInitialValue, TRequest>(
-    asyncFunc: (arg: TRequest) => Promise<TResponse>,
+const useApi: UseApi = <TResponse, TInitialValue, TRequestArgs extends any[]>(
+    asyncFunc: (...args: TRequestArgs) => Promise<TResponse>,
     initialResult: TInitialValue,
-): [TResponse | TInitialValue, (payload: TRequest) => void, ApiState] => {
+): [TResponse | TInitialValue, (...args: TRequestArgs) => void, ApiState] => {
   const [state, setState] = useState<State<TResponse | TInitialValue>>({
     result: initialResult,
     status: ApiStatus.initial,
@@ -45,10 +45,10 @@ const useApi: UseApi = <TResponse, TInitialValue, TRequest>(
     return () => setState({ ...state, status: ApiStatus.canceled, error: null });
   }, []);
 
-  const request = (payload: TRequest) => {
+  const request = (...args: TRequestArgs) => {
     setState({ ...state, status: ApiStatus.loading, error: null });
 
-    return asyncFunc(payload)
+    return asyncFunc(...args)
         .then((result) => {
           // Was the validation request canceled at run time?
           if (state.status !== ApiStatus.canceled) {
