@@ -27,14 +27,14 @@ type State<TResult> = {
 };
 
 export type UseApi = <TResponse, TInitialValue, TRequest = void>(
-    asyncFunc: (arg: TRequest) => Promise<TResponse>,
-    initialValue: TInitialValue,
+  asyncFunc: (arg: TRequest) => Promise<TResponse>,
+  initialValue: TInitialValue,
 ) => [TResponse | TInitialValue, (payload: TRequest) => void, ApiState];
 
-const useApi: UseApi = <TResponse, TInitialValue, TRequestArgs extends any[]>(
-    asyncFunc: (...args: TRequestArgs) => Promise<TResponse>,
-    initialResult: TInitialValue,
-): [TResponse | TInitialValue, (...args: TRequestArgs) => void, ApiState] => {
+const useApi: UseApi = <TResponse, TInitialValue, TRequest>(
+  asyncFunc: (payload: TRequest) => Promise<TResponse>,
+  initialResult: TInitialValue,
+): [TResponse | TInitialValue, (payload: TRequest) => void, ApiState] => {
   const [state, setState] = useState<State<TResponse | TInitialValue>>({
     result: initialResult,
     status: ApiStatus.initial,
@@ -45,23 +45,23 @@ const useApi: UseApi = <TResponse, TInitialValue, TRequestArgs extends any[]>(
     return () => setState({ ...state, status: ApiStatus.canceled, error: null });
   }, []);
 
-  const request = (...args: TRequestArgs) => {
+  const request = (payload: TRequest) => {
     setState({ ...state, status: ApiStatus.loading, error: null });
 
-    return asyncFunc(...args)
-        .then((result) => {
-          // Was the validation request canceled at run time?
-          if (state.status !== ApiStatus.canceled) {
-            setState({ result, status: ApiStatus.success, error: null });
-          }
-        })
-        .catch((error) => {
-          // Was the validation request canceled at run time?
-          if (state.status === ApiStatus.canceled) {
-            return;
-          }
-          setState({ ...state, status: ApiStatus.failed, error });
-        });
+    return asyncFunc(payload)
+      .then((result) => {
+        // Was the validation request canceled at run time?
+        if (state.status !== ApiStatus.canceled) {
+          setState({ result, status: ApiStatus.success, error: null });
+        }
+      })
+      .catch((error) => {
+        // Was the validation request canceled at run time?
+        if (state.status === ApiStatus.canceled) {
+          return;
+        }
+        setState({ ...state, status: ApiStatus.failed, error });
+      });
   };
 
   const resultState = useMemo((): ApiState => {
